@@ -1,11 +1,10 @@
 from django.db import models
 
 class Transport(models.Model):
-    id = models.IntegerField(primary_key=True)
     transport_model = models.CharField(max_length=40, null=False)
-    license_plate = models.CharField(max_length=8, null=False)
-    fuel_rate = models.SmallIntegerField(null=False)
-    vin = models.CharField(max_length=17, null=False)
+    license_plate = models.CharField(max_length=10, null=False)
+    fuel_rate = models.IntegerField(null=False)
+    vin = models.CharField(max_length=17, null=False, unique=True)
     mileage = models.SmallIntegerField(null=False)
     status = models.CharField(max_length=15, null=False)
 
@@ -14,14 +13,14 @@ class Transport(models.Model):
         verbose_name_plural = "Транспорти"
     
     def __str__(self):
-        return self.name
+        return f"{self.transport_model} ({self.license_plate})"
 
 
 class Driver(models.Model):
-    id = models.IntegerField(primary_key=True)
     first_name = models.CharField(max_length=50, null=False)
     last_name = models.CharField(max_length=50, null=False)
     license = models.CharField(max_length=100, null=False)
+    itn = models.CharField(max_length=10, null=False, unique=True, default='0000000000')
     experience = models.TextField(max_length=500)
     phone = models.CharField(max_length=13, null=False)
 
@@ -34,7 +33,6 @@ class Driver(models.Model):
 
 
 class Trip(models.Model):
-    id = models.IntegerField(primary_key=True)
     driver_id = models.ForeignKey(Driver, on_delete=models.CASCADE)
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     start_point = models.CharField(max_length=20, null=False)
@@ -52,7 +50,6 @@ class Trip(models.Model):
 
 
 class FuelLog(models.Model):
-    id = models.IntegerField(primary_key=True)
     trip_id = models.ForeignKey(Trip, on_delete=models.CASCADE)
     liters = models.IntegerField(null=False)
     price = models.DecimalField(max_digits=15, decimal_places=2, null=False)
@@ -67,7 +64,6 @@ class FuelLog(models.Model):
 
 
 class Maintenance(models.Model):
-    id = models.IntegerField(primary_key=True)
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     type = models.CharField(max_length=15, null=False)
     cost = models.DecimalField(max_digits=15, decimal_places=2, null=False)
