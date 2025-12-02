@@ -20,7 +20,7 @@ class Driver(models.Model):
     first_name = models.CharField(max_length=50, null=False)
     last_name = models.CharField(max_length=50, null=False)
     license = models.CharField(max_length=100, null=False)
-    itn = models.CharField(max_length=10, null=False, unique=True, default='0000000000')
+    itn = models.CharField(max_length=10, null=False, unique=True)
     experience = models.TextField(max_length=500)
     phone = models.CharField(max_length=13, null=False)
 
@@ -29,7 +29,7 @@ class Driver(models.Model):
         verbose_name_plural = "Водії"
     
     def __str__(self):
-        return self.name
+        return f"{self.first_name} {self.last_name} ({self.phone})"
 
 
 class Trip(models.Model):
@@ -46,7 +46,7 @@ class Trip(models.Model):
         verbose_name_plural = "Поїздки"
     
     def __str__(self):
-        return self.name
+        return f"{self.start_point} - {self.end_point} ({self.status})"
 
 
 class FuelLog(models.Model):
@@ -60,7 +60,7 @@ class FuelLog(models.Model):
         verbose_name_plural = "Палива"
     
     def __str__(self):
-        return self.name
+        return f"{self.liters} ({self.price} грн)"
 
 
 class Maintenance(models.Model):
@@ -74,4 +74,4 @@ class Maintenance(models.Model):
         verbose_name_plural = "Технічні обслуговування"
     
     def __str__(self):
-        return self.name
+        return f"{self.type} ({self.cost})"
