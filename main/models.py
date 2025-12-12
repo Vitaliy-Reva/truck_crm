@@ -3,12 +3,16 @@ from django.db import models
 class Transport(models.Model):
     transport_model = models.CharField(max_length=40, null=False)
     license_plate = models.CharField(max_length=10, null=False)
-    fuel_rate = models.IntegerField(null=False)
+    fuel_rate = models.IntegerField(null=False, default=0)
     vin = models.CharField(max_length=17, null=False, unique=True)
     mileage = models.SmallIntegerField(null=False)
-    status = models.CharField(max_length=15, null=False)
+    status = models.CharField(max_length=20, choices=(('F', 'Free'), ('OW', 'On the way')), default='F')
+    to = models.CharField(max_length=20, choices=(('NS', 'Need to service'), ('S', 'Served'), ('OS', 'On serviced'), ('R', 'Repair')), default='S')
+    miles_to_inspect = models.SmallIntegerField(null=False)
+    next_inspect = models.SmallIntegerField(null=False, default=miles_to_inspect)
 
     class Meta:
+        ordering = ('transport_model',)
         verbose_name = "Транспорт"
         verbose_name_plural = "Транспорти"
     
@@ -17,14 +21,16 @@ class Transport(models.Model):
 
 
 class Driver(models.Model):
-    first_name = models.CharField(max_length=50, null=False)
+    first_name = models.CharField("padlo", max_length=50, null=False)
     last_name = models.CharField(max_length=50, null=False)
     license = models.CharField(max_length=100, null=False)
-    itn = models.CharField(max_length=10, null=False, unique=True)
+    itn = models.CharField(max_length=10, null=False)
     experience = models.TextField(max_length=500)
     phone = models.CharField(max_length=13, null=False)
+    status = models.CharField(max_length=20, choices=(('F', 'Free'), ('OW', 'On the way')), default='F')
 
     class Meta:
+        ordering = ('last_name',)
         verbose_name = "Водій"
         verbose_name_plural = "Водії"
     
@@ -37,8 +43,10 @@ class Trip(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     start_point = models.CharField(max_length=20, null=False)
     end_point = models.CharField(max_length=20, null=False)
-    status = models.CharField(max_length=15, null=False)
+    status = models.CharField(max_length=20, choices=(('P', 'Performing'), ('C', 'Completed')), default='P')
     distance = models.IntegerField(null=False)
+    fuel_status = models.CharField(max_length=20, choices=(('O', 'Overspending'), ('N', 'Normal')), default='N')
+    fuel_actual = models.IntegerField(null=False)
     fuel_planned = models.IntegerField(null=True)
 
     class Meta:
@@ -50,6 +58,7 @@ class Trip(models.Model):
 
 
 class FuelLog(models.Model):
+    transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     trip_id = models.ForeignKey(Trip, on_delete=models.CASCADE)
     liters = models.IntegerField(null=False)
     price = models.DecimalField(max_digits=15, decimal_places=2, null=False)
@@ -65,7 +74,7 @@ class FuelLog(models.Model):
 
 class Maintenance(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
-    type = models.CharField(max_length=15, null=False)
+    type = models.CharField(max_length=15, choices=(('S', 'Service'), ('R', 'Repair')))
     cost = models.DecimalField(max_digits=15, decimal_places=2, null=False)
     date = models.DateField()
 

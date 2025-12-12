@@ -4,10 +4,21 @@ from rest_framework.decorators import api_view
 from rest_framework import status
 from .models import *
 from .serializer import *
+from .services.transport_service import TransportService
+from .services.driver_service import DriverService
+from .services.trip_service import TripService
+from .services.fuellog_service import FuelLogService
+from .services.maintenance_service import MaintenanceService
+from drf_spectacular.utils import extend_schema
 
 #-------------------------------------------------------------------------------------------
 # Transport CRUD
 #-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=TransportSerializer,
+    responses=TransportSerializer
+)
+
 @api_view(['GET', 'POST'])
 def transport_list(request):
     if request.method == 'GET':
@@ -16,17 +27,14 @@ def transport_list(request):
         return Response(serializer.data)
 
     if request.method == 'POST':
-        serializer = TransportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
-
+        transport = TransportService.create_transport(request.data)
+        return Response(TransportSerializer(transport).data)
+        
 @api_view(['GET', 'PUT', 'DELETE'])
 def transport_detail(request, pk):
     try:
         transport = Transport.objects.get(pk=pk)
-    except:
+    except Transport.DoesNotExist:
         return Response({"error": "Object not found"})
     
     if request.method == 'GET':
@@ -34,11 +42,8 @@ def transport_detail(request, pk):
         return Response(serializer.data)
 
     if request.method == 'PUT':
-        serializer = TransportSerializer(transport, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        transport = TransportService.update_transport(data=request.data, transport=transport, new_mileage=request.data["mileage"])
+        return Response(TransportSerializer(transport).data)
 
     if request.method == 'DELETE':
         transport.delete()
@@ -47,6 +52,11 @@ def transport_detail(request, pk):
 #-------------------------------------------------------------------------------------------
 # Driver CRUD
 #-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=DriverSerializer,
+    responses=DriverSerializer
+)
+
 @api_view(['GET', 'POST'])
 def driver_list(request):
     if request.method == 'GET':
@@ -55,17 +65,14 @@ def driver_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        serializer = DriverSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        driver = DriverService.create_driver(request.data)
+        return Response(DriverSerializer(driver).data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def driver_detail(request, pk):
     try:
         driver = Driver.objects.get(pk=pk)
-    except:
+    except Driver.DoesNotExist:
         return Response({"error": "Object not found"})
     
     if request.method == 'GET':
@@ -73,11 +80,8 @@ def driver_detail(request, pk):
         return Response(serializer.data)
 
     if request.method == 'PUT':
-        serializer = DriverSerializer(driver, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        driver = DriverService.updata_driver(driver=driver)
+        return Response(DriverSerializer(driver).data)
 
     if request.method == 'DELETE':
         driver.delete()
@@ -86,6 +90,11 @@ def driver_detail(request, pk):
 #-------------------------------------------------------------------------------------------
 # Trip CRUD
 #-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=TripSerializer,
+    responses=TripSerializer
+)
+
 @api_view(['GET', 'POST'])
 def trip_list(request):
     if request.method == 'GET':
@@ -94,17 +103,19 @@ def trip_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        serializer = TripSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        driver_id = request.data.get("driver_id")
+        driver = Driver.objects.get(pk=driver_id)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+
+        trip = TripService.trip_create(data=request.data, driver=driver, transport=transport)
+        return Response(TripSerializer(trip).data)
 
 @api_view(['GET', 'PUT', 'DELETE'])   
 def trip_detail(request, pk):
     try:
         trip = Trip.objects.get(pk=pk)
-    except:
+    except Trip.DoesNotExist:
         Response({"error": "Object not found"})
     
     if request.method == 'GET':
@@ -112,11 +123,13 @@ def trip_detail(request, pk):
         return Response(serializer.data)
     
     if request.method == 'PUT':
-        serializer = TripSerializer(trip, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        driver_id = request.data.get("driver_id")
+        driver = Driver.objects.get(pk=driver_id)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+
+        trip = TripService.trip_update(trip, data=request.data, driver=driver, transport=transport)
+        return Response(TripSerializer(trip).data)
     
     if request.method == 'DELETE':
         trip.delete()
@@ -125,6 +138,11 @@ def trip_detail(request, pk):
 #-------------------------------------------------------------------------------------------
 # FuelLog CRUD
 #-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=FuelLogSerializer,
+    responses=FuelLogSerializer
+)
+
 @api_view(['GET', 'POST'])
 def fuel_list(request):
     if request.method == 'GET':
@@ -133,37 +151,48 @@ def fuel_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        serializer = FuelLogSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        trip_id = request.data.get("trip_id")
+        trip = Trip.objects.get(pk=trip_id)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+        fuellog = FuelLogService.fuellog_create(request.data, trip=trip, transport=transport)
+        return Response(FuelLogSerializer(fuellog).data)
     
 @api_view(['GET', 'PUT', 'DELETE'])
 def fuel_detail(request, pk):
     try:
-        fuel = FuelLog.objects.get(pk=pk)
-    except:
+        fuellog = FuelLog.objects.get(pk=pk)
+    except FuelLog.DoesNotExist:
         return Response({"error": "Object not found"})
     
     if request.method == 'GET':
-        serializer = FuelLogSerializer(fuel)
+        serializer = FuelLogSerializer(fuellog)
         return Response(serializer.data)
     
     if request.method == 'PUT':
-        serializer = FuelLogSerializer(fuel, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        trip_id = request.data.get("trip_id")
+        trip = Trip.objects.get(pk=trip_id)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+        fuellog = FuelLogService.fuellog_update(fuellog=fuellog, data=request.data, trip=trip, transport=transport)
+        return Response(FuelLogSerializer(fuellog).data)
     
     if request.method == 'DELETE':
-        fuel.delete()
+        trip_id = request.data.get("trip_id")
+        trip = Trip.objects.get(pk=trip_id)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+        FuelLogService.fuel_delete(data=request.data, fuellog=fuellog, trip=trip, transport=transport)
         return Response()
 
 #-------------------------------------------------------------------------------------------
 # Maintenance CRUD
 #-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=MaintenanceSerializer,
+    responses=MaintenanceSerializer
+)
+
 @api_view(['GET', 'POST'])
 def maintenance_list(request):
     if request.method == 'GET':
@@ -172,17 +201,16 @@ def maintenance_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        serializer = MaintenanceSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+        maintenance = MaintenanceService.maintenance_create(data=request.data, transport=transport)
+        return Response(MaintenanceSerializer(maintenance).data)
     
 @api_view(['GET', 'PUT', 'DELETE'])
 def maintenance_detail(request, pk):
     try:
         maintenance = Maintenance.objects.get(pk=pk)
-    except:
+    except Maintenance.DoesNotExist:
         return Response({"error": "Object not found"})
     
     if request.method == 'GET':
@@ -190,11 +218,10 @@ def maintenance_detail(request, pk):
         return Response(serializer.data)
     
     if request.method == 'PUT':
-        serializer = MaintenanceSerializer(maintenance, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors)
+        transport_id = request.data.get("transport_id")
+        transport = Transport.objects.get(pk=transport_id)
+        maintenance = MaintenanceService.maintenance_update(data=request.data, maintenance=maintenance, transport=transport)
+        return Response(MaintenanceSerializer(maintenance).data)
     
     if request.method == 'DELETE':
         maintenance.delete()
