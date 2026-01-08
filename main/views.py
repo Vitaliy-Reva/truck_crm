@@ -6,6 +6,7 @@ from .models import *
 from .serializer import *
 from .services.transport_service import TransportService
 from .services.driver_service import DriverService
+from .services.client_service import ClientService
 from .services.trip_service import TripService
 from .services.fuellog_service import FuelLogService
 from .services.maintenance_service import MaintenanceService
@@ -28,7 +29,11 @@ def transport_list(request):
 
     if request.method == 'POST':
         transport = TransportService.create_transport(request.data)
-        return Response(TransportSerializer(transport).data)
+        serializer = TransportSerializer(transport, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
         
 @api_view(['GET', 'PUT', 'DELETE'])
 def transport_detail(request, pk):
@@ -65,7 +70,7 @@ def driver_list(request):
         return Response(serializer.data)
     
     if request.method == 'POST':
-        driver = DriverService.create_driver(request.data)
+        driver = DriverService.driver_create(request.data)
         return Response(DriverSerializer(driver).data)
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -80,11 +85,49 @@ def driver_detail(request, pk):
         return Response(serializer.data)
 
     if request.method == 'PUT':
-        driver = DriverService.updata_driver(driver=driver)
+        driver = DriverService.driver_update(driver=driver)
         return Response(DriverSerializer(driver).data)
 
     if request.method == 'DELETE':
         driver.delete()
+        return Response()
+    
+#-------------------------------------------------------------------------------------------
+# Client CRUD
+#-------------------------------------------------------------------------------------------
+@extend_schema(
+    request=ClientSerializer,
+    responses=ClientSerializer
+)
+
+@api_view(['GET', 'POST'])
+def client_list(request):
+    if request.method == 'GET':
+        clients = Client.objects.all()
+        serializer = ClientSerializer(clients, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        client = ClientService.created_client(data=request.data)
+        return Response(ClientSerializer(client).data)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def client_detail(request, pk):
+    try:
+        client = Client.objects.get(pk=pk)
+    except Client.DoesNotExist:
+        return Response(ClientSerializer(client).data)
+    
+    if request.method == 'GET':
+        serializer = ClientSerializer(client)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        client = ClientService.update_client(client=client)
+        return Response(ClientSerializer(client).data)
+
+    if request.method == 'DELETE':
+        client.delete()
         return Response()
     
 #-------------------------------------------------------------------------------------------
@@ -107,8 +150,10 @@ def trip_list(request):
         driver = Driver.objects.get(pk=driver_id)
         transport_id = request.data.get("transport_id")
         transport = Transport.objects.get(pk=transport_id)
+        client_id = request.data.get("client_id")
+        client = Client.objects.get(pk=client_id)
 
-        trip = TripService.trip_create(data=request.data, driver=driver, transport=transport)
+        trip = TripService.trip_create(data=request.data, driver=driver, transport=transport, client=client)
         return Response(TripSerializer(trip).data)
 
 @api_view(['GET', 'PUT', 'DELETE'])   
@@ -127,8 +172,10 @@ def trip_detail(request, pk):
         driver = Driver.objects.get(pk=driver_id)
         transport_id = request.data.get("transport_id")
         transport = Transport.objects.get(pk=transport_id)
+        client_id = request.data.get("client_id")
+        client = Client.objects.get(pk=client_id)
 
-        trip = TripService.trip_update(trip, data=request.data, driver=driver, transport=transport)
+        trip = TripService.trip_update(trip, data=request.data, driver=driver, transport=transport, client=client)
         return Response(TripSerializer(trip).data)
     
     if request.method == 'DELETE':

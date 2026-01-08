@@ -12,4 +12,6 @@ urlpatterns = [
     path('fuel/<int:pk>/', fuel_detail, name='fuel-detail'),
     path('maintenance/', maintenance_list, name='maintenance-list'),
     path('maintenance/<int:pk>/', maintenance_detail, name='maintenance-detail'),
+    path('client/', client_list, name='client-list'),
+    path('client/<int:pk>/', client_detail, name='client_detail'),
 ]

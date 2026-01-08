@@ -1,10 +1,11 @@
-from ..models import Trip, Driver, Transport
+from ..models import Trip, Driver, Transport, Client
 
 class TripService:
     @staticmethod
-    def trip_create(data: dict, driver: Driver, transport: Transport):
+    def trip_create(data: dict, driver: Driver, transport: Transport, client: Client):
         data["driver_id"] = driver
         data["transport_id"] = transport
+        data["client_id"] = client
         trip = Trip.objects.create(**data)
         if trip.status == 'P':
             driver.status = 'OW'
@@ -20,9 +21,10 @@ class TripService:
         return trip
     
     @staticmethod
-    def trip_update(trip: Trip, data: dict, driver: Driver, transport: Transport):
+    def trip_update(trip: Trip, data: dict, driver: Driver, transport: Transport, client: Client):
         data["driver_id"] = driver
         data["transport_id"] = transport
+        data["client_id"] = client
         if trip.status == 'P':
             driver.status = 'OW'
             transport.status = "OW"

@@ -3,15 +3,10 @@ from ..models import Transport
 class TransportService:
     @staticmethod
     def create_transport(data: dict):
-        if data["mileage"] < 0:
-            raise ValueError('Пробіг не може бути менше нуля')
         return Transport.objects.create(**data)
     
     @staticmethod
     def update_transport(data: dict, transport: Transport, new_mileage: int):
-        if transport.mileage < 0:
-            raise ValueError('Пробіг не може бути менше нуля')
-
         if new_mileage < transport.mileage:
             raise ValueError('Новий пробіг не може бути меншим за вже встановлений')
         

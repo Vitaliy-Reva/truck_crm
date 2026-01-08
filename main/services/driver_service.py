@@ -2,10 +2,10 @@ from ..models import Driver
 
 class DriverService:
     @staticmethod
-    def create_driver(data: dict):
+    def driver_create(data: dict):
         return Driver.objects.create(**data)
     
     @staticmethod
-    def updata_driver(driver: Driver):
+    def driver_update(driver: Driver):
         driver.save()
         return driver
