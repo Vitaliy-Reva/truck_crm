@@ -2,14 +2,24 @@ from rest_framework import serializers
 from .models import *
 
 class TransportSerializer(serializers.ModelSerializer):
+
+    def validate(self, attrs):
+        new_mileage = attrs.get('mileage')
+
+        if new_mileage is not None and new_mileage < 0:
+            raise serializers.ValidationError({"mileage": 'Пробіг не може бути меншим за нуль'})
+        
+        if self.instance is not None:
+            old_mileage = self.instance.mileage
+            if new_mileage < old_mileage:
+                raise serializers.ValidationError({"mileage": 'Новий пробіг не може бути меншим за попередній'})
+
+        return attrs        
+    
     class Meta:
         model = Transport
-        fields = ['id','transport_model', 'license_plate', 'fuel_rate', 'vin', 'mileage', 'status', 'to', 'miles_to_inspect', 'next_inspect']
+        fields = ['id', 'transport_model', 'license_plate', 'fuel_rate', 'vin', 'mileage', 'status', 'to', 'miles_to_inspect', 'next_inspect']
 
-        def validate(self, data):
-            if data["mileage"] < 0:
-                raise ValueError('Пробіг не може бути менше нуля')
-            return data
 
 class DriverSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,6 +30,11 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = ['id', 'client_type', 'first_name', 'last_name', 'phone', 'email', 'ipn', 'company_name', 'erdpou', 'created']
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['id', 'client_id', 'order_name', 'price', 'payment', 'date']
 
 class TripSerializer(serializers.ModelSerializer):
     class Meta:

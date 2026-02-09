@@ -18,7 +18,7 @@ class FuelLogService:
         return fuellog
     
     @staticmethod
-    def fuellog_update(fuellog: FuelLog, data: dict, trip: Trip, transport: Transport):
+    def fuellog_update(data: dict, fuellog: FuelLog, trip: Trip, transport: Transport):
         data["transport_id"] = transport
         data["trip_id"] = trip
 
@@ -32,15 +32,4 @@ class FuelLogService:
         fuellog.price = data.get("price", fuellog.price)
         fuellog.timestamp = data.get('timestamp', fuellog.timestamp)
         fuellog.save()
-        return fuellog
-    
-    @staticmethod
-    def fuel_delete(data: dict, fuellog: FuelLog, trip: Trip, transport: Transport):
-        data["transport_id"] = transport
-        data["trip_id"] = trip
-        trip.fuel_actual -= fuellog.liters
-        transport.fuel_rate -= fuellog.liters
-        transport.save()
-        trip.save()
-        fuellog.delete()
         return fuellog

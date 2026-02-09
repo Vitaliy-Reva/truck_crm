@@ -49,7 +49,7 @@ class Client(models.Model):
     company_name = models.CharField('Назва компанії', max_length=100, null=True, blank=True)
     erdpou = models.CharField('ЄРДПОУ', max_length=8, null=True, blank=True, unique=True)
 
-    created = models.DateTimeField('Дата створення', auto_now_add=True)
+    created = models.DateField('Дата створення', auto_now=True)
 
     class Meta:
         verbose_name = 'Клієнт'
@@ -61,6 +61,21 @@ class Client(models.Model):
         elif self.client_type == 'FOP':
             return f"ФОП {self.first_name} {self.last_name}"
         return f"{self.company_name}. Представник - {self.first_name} {self.last_name}"
+
+class Order(models.Model):
+    client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
+    order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
+    price = models.SmallIntegerField('Ціна', null=True, blank=True)
+    payment = models.FileField('Платіжка', upload_to='payments/', null=True, blank=True)
+    date = models.DateField('Дата створення', auto_now=True, null=True, blank=True)
+
+    class Meta:
+        ordering = ('order_name',)
+        verbose_name = 'Замовлення'
+        verbose_name_plural = 'Замовлення'
+        
+    def __str__(self):
+        return f"{self.order_name} ({self.client_id})"
 
 
 class Trip(models.Model):

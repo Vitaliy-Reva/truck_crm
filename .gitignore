@@ -5,6 +5,7 @@ __pycache__/
 .vscode
 .idea
 .env
+payments
 
 db.sqlite3
 media/

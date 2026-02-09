@@ -7,9 +7,7 @@ class TransportService:
     
     @staticmethod
     def update_transport(data: dict, transport: Transport, new_mileage: int):
-        if new_mileage < transport.mileage:
-            raise ValueError('Новий пробіг не може бути меншим за вже встановлений')
-        
+        print(data)
         if transport.mileage >= transport.next_inspect:
             transport.to = 'NS'
             transport.next_inspect += transport.miles_to_inspect
@@ -22,6 +20,7 @@ class TransportService:
         transport.vin = data.get("vin", transport.vin)
         transport.status = data.get('status', transport.status)
         transport.miles_to_inspect = data.get("miles_to_inspect", transport.miles_to_inspect)
+        transport.next_inspect = data.get("next_inspect", transport.next_inspect)
         
         transport.save()
         return transport

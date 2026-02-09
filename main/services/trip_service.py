@@ -21,7 +21,7 @@ class TripService:
         return trip
     
     @staticmethod
-    def trip_update(trip: Trip, data: dict, driver: Driver, transport: Transport, client: Client):
+    def trip_update(data: dict, trip: Trip, driver: Driver, transport: Transport, client: Client):
         data["driver_id"] = driver
         data["transport_id"] = transport
         data["client_id"] = client
