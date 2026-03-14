@@ -11,6 +11,8 @@ from .services.trip_service import TripService
 from .services.fuellog_service import FuelLogService
 from .services.maintenance_service import MaintenanceService
 from .services.order_service import OrderService
+from .services.payment_service import PaymentService
+from .services.item_list import get_items
 from drf_spectacular.utils import extend_schema
 
 #-------------------------------------------------------------------------------------------
@@ -31,11 +33,10 @@ def transport_list(request):
     if request.method == 'POST':
         serializer = TransportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        transport = TransportService.create_transport(data=serializer.validated_data)
-
-        return Response(TransportSerializer(transport).data, status=200)
+        TransportService.create_transport(data=serializer.validated_data)
+        return Response(serializer.data, status=201)
         
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def transport_detail(request, pk):
     try:
         transport = Transport.objects.get(pk=pk)
@@ -46,11 +47,11 @@ def transport_detail(request, pk):
         serializer = TransportSerializer(transport)
         return Response(serializer.data)
 
-    if request.method == 'PUT':
-        serializer = TransportSerializer(transport, data=request.data)
+    if request.method == 'PATCH':
+        serializer = TransportSerializer(transport, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        transport = TransportService.update_transport(data=serializer.validated_data, transport=transport, new_mileage=serializer.validated_data["mileage"])
-        return Response(TransportSerializer(transport).data, status=200)
+        TransportService.update_transport(transport=transport, data=serializer.validated_data)
+        return Response(serializer.data, status=200)
 
     if request.method == 'DELETE':
         transport.delete()
@@ -74,10 +75,10 @@ def driver_list(request):
     if request.method == 'POST':
         serializer = DriverSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        driver = DriverService.driver_create(data=serializer.validated_data)
-        return Response(DriverSerializer(driver).data, status=200)
+        DriverService.driver_create(data=serializer.validated_data)
+        return Response(serializer.data, status=201)
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def driver_detail(request, pk):
     try:
         driver = Driver.objects.get(pk=pk)
@@ -88,11 +89,11 @@ def driver_detail(request, pk):
         serializer = DriverSerializer(driver)
         return Response(serializer.data)
 
-    if request.method == 'PUT':
-        serializer = DriverSerializer(driver, data=request.data)
+    if request.method == 'PATCH':
+        serializer = DriverSerializer(driver, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        driver = DriverService.driver_update(data=serializer.validated_data, driver=driver)
-        return Response(DriverSerializer(driver).data, status=200)
+        DriverService.driver_update(data=serializer.validated_data, driver=driver)
+        return Response(serializer.data, status=200)
 
     if request.method == 'DELETE':
         driver.delete()
@@ -116,10 +117,10 @@ def client_list(request):
     if request.method == 'POST':
         serializer = ClientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        client = ClientService.create_client(data=serializer.validated_data)
-        return Response(ClientSerializer(client).data, status=200)
+        ClientService.create_client(data=serializer.validated_data)
+        return Response(serializer.data, status=201)
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def client_detail(request, pk):
     try:
         client = Client.objects.get(pk=pk)
@@ -130,11 +131,11 @@ def client_detail(request, pk):
         serializer = ClientSerializer(client)
         return Response(serializer.data)
     
-    if request.method == 'PUT':
-        serializer = ClientSerializer(client, data=request.data)
+    if request.method == 'PATCH':
+        serializer = ClientSerializer(client, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        client = ClientService.update_client(data=serializer.validated_data, client=client)
-        return Response(ClientSerializer(client).data, status=200)
+        ClientService.update_client(data=serializer.validated_data, client=client)
+        return Response(serializer.data, status=200)
 
     if request.method == 'DELETE':
         client.delete()
@@ -161,11 +162,10 @@ def order_list(request):
         
         serializer = OrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = OrderService(data=serializer.validated_data, client=client)
-
-        return Response(OrderSerializer(order).data, status=200)
+        OrderService.create_order(data=serializer.validated_data, client=client)
+        return Response(serializer.data, status=201)
     
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def order_detail(request, pk):
     try:
         order = Order.objects.get(pk=pk)
@@ -176,15 +176,14 @@ def order_detail(request, pk):
         serializer = OrderSerializer(order)
         return Response(serializer.data, status=200)
     
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         client_id = request.data.get('client_id')
         client = Client.objects.get(pk=client_id)
 
-        serializer = OrderSerializer(order, data=request.data)
+        serializer = OrderSerializer(order, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        order = OrderService.update_order(data=serializer.validated_data, order=order, client=client, filename=request.data["payment"])
-
-        return Response(OrderSerializer(order).data, status=200)
+        OrderService.update_order(data=serializer.validated_data, order=order, client=client)
+        return Response(serializer.data, status=201)
     
     if request.method == 'DELETE':
         order.delete()
@@ -201,8 +200,8 @@ def order_detail(request, pk):
 @api_view(['GET', 'POST'])
 def trip_list(request):
     if request.method == 'GET':
-        trips = Trip.objects.all()
-        serializer = TripSerializer(trips, many=True)
+        trip = Trip.objects.all()
+        serializer = TripSerializer(trip, many=True)
         return Response(serializer.data)
     
     if request.method == 'POST':
@@ -212,13 +211,15 @@ def trip_list(request):
         transport = Transport.objects.get(pk=transport_id)
         client_id = request.data.get("client_id")
         client = Client.objects.get(pk=client_id)
+        order_id = request.data.get("order_id")
+        order = Order.objects.get(pk=order_id)
 
         serializer = TripSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        trip = TripService.trip_create(data=serializer.validated_data, driver=driver, transport=transport, client=client)
-        return Response(TripSerializer(trip).data, status=200)
+        TripService.trip_create(data=serializer.validated_data, driver=driver, transport=transport, client=client, order=order)
+        return Response(serializer.data, status=201)
 
-@api_view(['GET', 'PUT', 'DELETE'])   
+@api_view(['GET', 'PATCH', 'DELETE'])   
 def trip_detail(request, pk):
     try:
         trip = Trip.objects.get(pk=pk)
@@ -229,18 +230,20 @@ def trip_detail(request, pk):
         serializer = TripSerializer(trip)
         return Response(serializer.data)
     
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         driver_id = request.data.get("driver_id")
         driver = Driver.objects.get(pk=driver_id)
         transport_id = request.data.get("transport_id")
         transport = Transport.objects.get(pk=transport_id)
         client_id = request.data.get("client_id")
         client = Client.objects.get(pk=client_id)
+        order_id = request.data.get("order_id")
+        order = Order.objects.get(pk=order_id)
 
-        serializer = TripSerializer(trip, data=request.data)
+        serializer = TripSerializer(trip, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        trip = TripService.trip_update(data=serializer.validated_data, trip=trip, driver=driver, transport=transport, client=client)
-        return Response(TripSerializer(trip).data, status=200)
+        TripService.trip_update(data=serializer.validated_data, trip=trip, driver=driver, transport=transport, client=client, order=order)
+        return Response(serializer.data, status=200)
     
     if request.method == 'DELETE':
         trip.delete()
@@ -269,10 +272,10 @@ def fuel_list(request):
 
         serializer = FuelLogSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        fuellog = FuelLogService.fuellog_create(data=serializer.validated_data, trip=trip, transport=transport)
-        return Response(FuelLogSerializer(fuellog).data, status=400)
+        FuelLogService.fuellog_create(data=serializer.validated_data, trip=trip, transport=transport)
+        return Response(serializer.data, status=201)
     
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def fuel_detail(request, pk):
     try:
         fuellog = FuelLog.objects.get(pk=pk)
@@ -283,15 +286,16 @@ def fuel_detail(request, pk):
         serializer = FuelLogSerializer(fuellog)
         return Response(serializer.data)
     
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         trip_id = request.data.get("trip_id")
         trip = Trip.objects.get(pk=trip_id)
         transport_id = request.data.get("transport_id")
         transport = Transport.objects.get(pk=transport_id)
-        serializer = FuelLogSerializer(fuellog, data=request.data)
+
+        serializer = FuelLogSerializer(fuellog, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        fuellog = FuelLogService.fuellog_update(data=request.data, fuellog=fuellog, trip=trip, transport=transport)
-        return Response(FuelLogSerializer(fuellog).data, status=200)
+        FuelLogService.fuellog_update(data=serializer.validated_data, fuellog=fuellog, trip=trip, transport=transport)
+        return Response(serializer.data, status=200)
     
     if request.method == 'DELETE':
         fuellog.delete()
@@ -318,10 +322,10 @@ def maintenance_list(request):
 
         serializer = MaintenanceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        maintenance = MaintenanceService.maintenance_create(data=serializer.validated_data, transport=transport)
-        return Response(MaintenanceSerializer(maintenance).data, status=200)
+        MaintenanceService.maintenance_create(data=serializer.validated_data, transport=transport)
+        return Response(serializer.data, status=201)
     
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PATCH', 'DELETE'])
 def maintenance_detail(request, pk):
     try:
         maintenance = Maintenance.objects.get(pk=pk)
@@ -332,15 +336,73 @@ def maintenance_detail(request, pk):
         serializer = MaintenanceSerializer(maintenance)
         return Response(serializer.data)
     
-    if request.method == 'PUT':
+    if request.method == 'PATCH':
         transport_id = request.data.get("transport_id")
         transport = Transport.objects.get(pk=transport_id)
 
-        serializer = MaintenanceSerializer(maintenance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        maintenance = MaintenanceService.maintenance_update(data=serializer.validated_data, maintenance=maintenance, transport=transport)
-        return Response(MaintenanceSerializer(maintenance).data, status=200)
+        serializer = MaintenanceSerializer(maintenance, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            MaintenanceService.maintenance_update(data=serializer.validated_data, maintenance=maintenance, transport=transport)
+            serializer.save()
+            return Response(serializer.data, status=200)
+        return Response(serializer.errors, status=400)
     
     if request.method == 'DELETE':
         maintenance.delete()
         return Response()
+
+#-------------------------------------------------------------------------------------------
+# Payment
+#-------------------------------------------------------------------------------------------
+
+@api_view(['POST'])
+def load_payment(request):
+    if request.method == 'POST':
+        payment = request.FILES.get('payment_register')
+        PaymentService.payment_process(payment)
+        return Response()
+
+#-------------------------------------------------------------------------------------------
+# NoPayedOrder
+#-------------------------------------------------------------------------------------------
+
+@api_view(['GET'])
+def nopayment(request):
+    if request.method == 'GET':
+        nopayment = NoPayedOrder.objects.all()
+        serializer = NoPayedOrderSerializer(nopayment, many=True)
+        return Response(serializer.data, status=200)
+
+@api_view(['GET', 'DELETE'])
+def nopaymentdetail(request, pk):
+    if request.method == 'GET':
+        try:
+            nopayment = NoPayedOrder.objects.get(pk=pk)
+        except NoPayedOrder.DoesNotExist:
+            return Response({"error": "Object not found"})
+    
+    if request.method == 'DELETE':
+        nopayment.delete()
+        return Response()
+
+#-------------------------------------------------------------------------------------------
+# GetOrderDoc
+#-------------------------------------------------------------------------------------------
+
+@api_view(['GET'])
+def get_order_doc(request):
+    if request.method == 'GET':
+        orders = Trip.objects.all()
+        get_items(orders)
+        return Response(status=200)
+
+@api_view(['GET'])
+def get_order_doc_by_id(request, pk):
+    if request.method == 'GET':
+        try:
+            order = Trip.objects.get(pk=pk)
+        except Trip.DoesNotExist:
+            return Response({"error": "Object not found"})
+        
+        get_items(order)
+        return Response(status=200)

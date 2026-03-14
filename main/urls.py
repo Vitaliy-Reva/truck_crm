@@ -20,6 +20,12 @@ urlpatterns = [
     path('maintenance/<int:pk>/', maintenance_detail, name='maintenance-detail'),
     path('client/', client_list, name='client-list'),
     path('client/<int:pk>/', client_detail, name='client_detail'),
+
+    path('payment/', load_payment, name='load-payment'),
+    path('nopayment/', nopayment, name='nopaymentdetail'),
+
+    path('get_order_word_doc/', get_order_doc, name='get-order-doc'),
+    path('get_order_word_doc/<int:pk>/', get_order_doc_by_id, name='get-order-doc-by-id')
 ]
 
 if settings.DEBUG:

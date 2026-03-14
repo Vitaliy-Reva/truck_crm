@@ -6,10 +6,11 @@ class Transport(models.Model):
     fuel_rate = models.IntegerField('Рівень палива', null=True, blank=True, default=0)
     vin = models.CharField('VIN-номер', max_length=17, null=True, blank=True, unique=True)
     mileage = models.SmallIntegerField('Пробіг', null=True, blank=True)
+    photo = models.ImageField('Фото', upload_to = 'images/')
     status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі')), default='F')
     to = models.CharField('Технічне обслуговування', max_length=20, choices=(('NS', 'Потрібне ТО'), ('S', 'Обслужений'), ('OS', 'На обслуговувані'), ('R', 'В ремонті')), default='S')
     miles_to_inspect = models.SmallIntegerField('ТО раз в', null=True, blank=True)
-    next_inspect = models.SmallIntegerField('Наступне ТО', null=True, blank=True, default=miles_to_inspect)
+    next_inspect = models.SmallIntegerField('Наступне ТО', null=True, blank=True, default=0)
 
     class Meta:
         ordering = ('transport_model',)
@@ -24,9 +25,10 @@ class Driver(models.Model):
     first_name = models.CharField("Ім'я", max_length=50, null=True, blank=True)
     last_name = models.CharField('Прізвище', max_length=50, null=True, blank=True)
     phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True, default='+380')
+    photo = models.ImageField('Фото', upload_to='photos/')
     license = models.CharField('Посвідчення водія', max_length=100, null=True, blank=True)
     ipn = models.CharField('Ідентифікаційний код', max_length=10, null=True, blank=True, unique=True)
-    experience = models.TextField('Досвід роботи. Про себе',max_length=500)
+    experience = models.TextField('Досвід роботи. Про себе', max_length=500)
     status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі')), default='F')
 
     class Meta:
@@ -45,10 +47,8 @@ class Client(models.Model):
     phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True, default='+380')
     email = models.EmailField('Електронна пошта', max_length=127, null=True, blank=True)
     ipn = models.CharField('Ідентифікаційний код', max_length=10, null=True, blank=True, unique=True)
-
     company_name = models.CharField('Назва компанії', max_length=100, null=True, blank=True)
-    erdpou = models.CharField('ЄРДПОУ', max_length=8, null=True, blank=True, unique=True)
-
+    edrpou = models.CharField('ЄДРПОУ', max_length=8, null=True, blank=True, unique=True)
     created = models.DateField('Дата створення', auto_now=True)
 
     class Meta:
@@ -61,16 +61,36 @@ class Client(models.Model):
         elif self.client_type == 'FOP':
             return f"ФОП {self.first_name} {self.last_name}"
         return f"{self.company_name}. Представник - {self.first_name} {self.last_name}"
+    
+    
+class NoPayedOrder(models.Model):
+    pay_id = models.CharField("Айді оплати", max_length=10, unique=True)
+    date = models.CharField('Дата', null=True, blank=True)
+    company = models.CharField('Компанія', null=True, blank=True)
+    name = models.CharField('ПІБ/Представник', null=True, blank=True)
+    ipn = models.CharField('Ідентифікаційни код', max_length=10, null=True, blank=True)
+    edrpou = models.CharField('ЄДРПОУ', max_length=8, null=True, blank=True)
+    total = models.IntegerField('Сума', null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Не оплачене замовлення'
+        verbose_name_plural = 'Не оплачені замовлення'
+
+    def __str__(self):
+        return f"({self.pay_id}) {self.name} ({self.company}) ({self.ipn}), ({self.edrpou})"
+    
 
 class Order(models.Model):
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
+    pay_id = models.CharField('Айді оплати', unique=True, null=True, blank=True, max_length=10)
     order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
     price = models.SmallIntegerField('Ціна', null=True, blank=True)
-    payment = models.FileField('Платіжка', upload_to='payments/', null=True, blank=True)
+    address = models.CharField('Адреса доставки', max_length=300, null=True, blank=True)
+    payment_status = models.CharField('Статус оплати', max_length=40, null=True, blank=True, choices=(('NP', 'Не оплачено'), ('P', 'Оплачено')), default='NP')
     date = models.DateField('Дата створення', auto_now=True, null=True, blank=True)
 
     class Meta:
-        ordering = ('order_name',)
+        ordering = ('client_id',)
         verbose_name = 'Замовлення'
         verbose_name_plural = 'Замовлення'
         
@@ -82,20 +102,21 @@ class Trip(models.Model):
     driver_id = models.ForeignKey(Driver, on_delete=models.CASCADE)
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
+    order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
     start_point = models.CharField('Старт', max_length=20, null=True, blank=True)
     end_point = models.CharField('Кінець', max_length=20, null=True, blank=True)
     status = models.CharField('Статус', max_length=20, choices=(('P', 'Виконується'), ('C', 'Виконано')), default='P')
     distance = models.IntegerField('Відстань', null=True, blank=True)
     fuel_status = models.CharField('Статус пального', max_length=20, choices=(('O', 'Надвитрата'), ('N', 'Норма')), default='N')
-    fuel_actual = models.IntegerField('Реальний об\'єм палива', null=True, blank=True)
-    fuel_planned = models.IntegerField('Запланований об\'єм палива', null=True, blank=True)
+    fuel_actual = models.IntegerField('Реальний об\'єм палива', null=True, blank=True, default=0)
+    fuel_planned = models.IntegerField('Запланований об\'єм палива', null=True, blank=True, default=0)
 
     class Meta:
         verbose_name = "Поїздка"
         verbose_name_plural = "Поїздки"
     
     def __str__(self):
-        return f"{self.start_point} - {self.end_point} ({self.status})"
+        return f"{self.start_point} - {self.end_point}"
     
 
 class FuelLog(models.Model):
@@ -115,7 +136,7 @@ class FuelLog(models.Model):
 
 class Maintenance(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
-    type = models.CharField('Тип обслуговування', max_length=15, choices=(('S', 'ТО'), ('R', 'Ремонт')))
+    type = models.CharField('Тип обслуговування', max_length=15, choices=(('S', 'ТО'), ('R', 'Ремонт'), ('E', 'Завершено')))
     cost = models.DecimalField('Ціна', max_digits=15, decimal_places=2, null=True, blank=True)
     date = models.DateField('Дата', auto_now_add=True)
 
@@ -124,4 +145,4 @@ class Maintenance(models.Model):
         verbose_name_plural = "Технічні обслуговування"
     
     def __str__(self):
-        return f"{self.type} ({self.cost})"
+        return f"{self.transport_id} ({self.type})"

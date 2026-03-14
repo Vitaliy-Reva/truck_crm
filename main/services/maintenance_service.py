@@ -10,6 +10,8 @@ class MaintenanceService:
             transport.to = 'OS'
         if maintenance.type == 'R':
             transport.to = 'R'
+        if maintenance.type == 'E':
+            transport.to = 'S'
         
         transport.save()
 
@@ -18,11 +20,16 @@ class MaintenanceService:
     @staticmethod
     def maintenance_update(data: dict, maintenance: Maintenance, transport: Transport):
         data["transport_id"] = transport
-        if maintenance.type == 'S':
+        new_type = data.get("type", maintenance.type)
+
+        if new_type == 'S':
             transport.to = 'OS'
-        if maintenance.type == 'R':
+        if new_type == 'R':
             transport.to = 'R'
-        
+        if new_type == 'E':
+            transport.to = 'S'
+
         transport.save()
         maintenance.save()
+        
         return maintenance

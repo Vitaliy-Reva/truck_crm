@@ -8,7 +8,7 @@ class FuelLogService:
         fuellog =  FuelLog.objects.create(**data)
 
         transport.fuel_rate += fuellog.liters
-        trip.fuel_actual += fuellog.liters
+        trip.fuel_actual = transport.fuel_rate
 
         if trip.fuel_actual > trip.fuel_planned:
             trip.fuel_status = 'O'
@@ -22,14 +22,14 @@ class FuelLogService:
         data["transport_id"] = transport
         data["trip_id"] = trip
 
+        transport.fuel_rate += fuellog.liters
+        trip.fuel_actual = transport.fuel_rate
+
         if trip.fuel_actual > trip.fuel_planned:
             trip.fuel_status = 'O'
         
         trip.save()
         transport.save()
-
-        fuellog.liters = data.get("liters", fuellog.liters)
-        fuellog.price = data.get("price", fuellog.price)
-        fuellog.timestamp = data.get('timestamp', fuellog.timestamp)
         fuellog.save()
+        
         return fuellog
