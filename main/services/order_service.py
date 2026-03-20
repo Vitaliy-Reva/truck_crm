@@ -20,6 +20,10 @@ class OrderService:
     def update_order(data: dict, order: Order, client: Client):
         data['client_id'] = client
 
+        for key, value in data.items():
+            if hasattr(order, key):
+                setattr(order, key, value)
+
         order.save()
         client.save()
 

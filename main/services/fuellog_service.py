@@ -27,6 +27,10 @@ class FuelLogService:
 
         if trip.fuel_actual > trip.fuel_planned:
             trip.fuel_status = 'O'
+
+        for key, value in data.items():
+            if hasattr(fuellog, key):
+                setattr(fuellog, key, value)
         
         trip.save()
         transport.save()

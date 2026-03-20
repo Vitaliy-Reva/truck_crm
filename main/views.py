@@ -50,7 +50,7 @@ def transport_detail(request, pk):
     if request.method == 'PATCH':
         serializer = TransportSerializer(transport, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        TransportService.update_transport(transport=transport, data=serializer.validated_data)
+        TransportService.update_transport(data=serializer.validated_data, transport=transport)
         return Response(serializer.data, status=200)
 
     if request.method == 'DELETE':

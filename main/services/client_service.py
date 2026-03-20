@@ -13,6 +13,10 @@ class ClientService:
         data["first_name"] = data["first_name"].capitalize()
         data["last_name"] = data["last_name"].capitalize()
 
+        for key, value in data.items():
+            if hasattr(client, key):
+                setattr(client, key, value)
+
         client.save()
         
         return client

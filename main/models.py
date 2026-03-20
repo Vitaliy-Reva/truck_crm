@@ -5,11 +5,11 @@ class Transport(models.Model):
     license_plate = models.CharField('Номера', max_length=10, null=True, blank=True)
     fuel_rate = models.IntegerField('Рівень палива', null=True, blank=True, default=0)
     vin = models.CharField('VIN-номер', max_length=17, null=True, blank=True, unique=True)
-    mileage = models.SmallIntegerField('Пробіг', null=True, blank=True)
+    mileage = models.SmallIntegerField('Пробіг', null=True, blank=True, default=0)
     photo = models.ImageField('Фото', upload_to = 'images/')
     status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі')), default='F')
     to = models.CharField('Технічне обслуговування', max_length=20, choices=(('NS', 'Потрібне ТО'), ('S', 'Обслужений'), ('OS', 'На обслуговувані'), ('R', 'В ремонті')), default='S')
-    miles_to_inspect = models.SmallIntegerField('ТО раз в', null=True, blank=True)
+    miles_to_inspect = models.SmallIntegerField('ТО раз в', null=True, blank=True, default=0)
     next_inspect = models.SmallIntegerField('Наступне ТО', null=True, blank=True, default=0)
 
     class Meta:
@@ -70,7 +70,7 @@ class NoPayedOrder(models.Model):
     name = models.CharField('ПІБ/Представник', null=True, blank=True)
     ipn = models.CharField('Ідентифікаційни код', max_length=10, null=True, blank=True)
     edrpou = models.CharField('ЄДРПОУ', max_length=8, null=True, blank=True)
-    total = models.IntegerField('Сума', null=True, blank=True)
+    total = models.IntegerField('Сума', null=True, blank=True, default=0)
 
     class Meta:
         verbose_name = 'Не оплачене замовлення'
@@ -84,7 +84,7 @@ class Order(models.Model):
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
     pay_id = models.CharField('Айді оплати', unique=True, null=True, blank=True, max_length=10)
     order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
-    price = models.SmallIntegerField('Ціна', null=True, blank=True)
+    price = models.SmallIntegerField('Ціна', null=True, blank=True, default=0)
     address = models.CharField('Адреса доставки', max_length=300, null=True, blank=True)
     payment_status = models.CharField('Статус оплати', max_length=40, null=True, blank=True, choices=(('NP', 'Не оплачено'), ('P', 'Оплачено')), default='NP')
     date = models.DateField('Дата створення', auto_now=True, null=True, blank=True)
@@ -103,10 +103,10 @@ class Trip(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
-    start_point = models.CharField('Старт', max_length=20, null=True, blank=True)
-    end_point = models.CharField('Кінець', max_length=20, null=True, blank=True)
-    status = models.CharField('Статус', max_length=20, choices=(('P', 'Виконується'), ('C', 'Виконано')), default='P')
-    distance = models.IntegerField('Відстань', null=True, blank=True)
+    start_point = models.CharField('Старт', max_length=100, null=True, blank=True)
+    end_point = models.CharField('Кінець', max_length=100, null=True, blank=True)
+    status = models.CharField('Статус', max_length=20, choices=(('AC', 'Очікує підтвердження'), ('P', 'Виконується'), ('C', 'Виконано')), default='AC')
+    distance = models.IntegerField('Відстань', null=True, blank=True, default=0)
     fuel_status = models.CharField('Статус пального', max_length=20, choices=(('O', 'Надвитрата'), ('N', 'Норма')), default='N')
     fuel_actual = models.IntegerField('Реальний об\'єм палива', null=True, blank=True, default=0)
     fuel_planned = models.IntegerField('Запланований об\'єм палива', null=True, blank=True, default=0)
@@ -122,8 +122,8 @@ class Trip(models.Model):
 class FuelLog(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     trip_id = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    liters = models.IntegerField('Літри', null=True, blank=True)
-    price = models.DecimalField('Ціна', max_digits=15, decimal_places=2, null=True, blank=True)
+    liters = models.IntegerField('Літри', null=True, blank=True, default=0)
+    price = models.DecimalField('Ціна', max_digits=15, decimal_places=2, null=True, blank=True, default=0)
     timestamp = models.DateTimeField('Дата заправки', auto_now_add=True)
 
     class Meta:
@@ -137,7 +137,7 @@ class FuelLog(models.Model):
 class Maintenance(models.Model):
     transport_id = models.ForeignKey(Transport, on_delete=models.CASCADE)
     type = models.CharField('Тип обслуговування', max_length=15, choices=(('S', 'ТО'), ('R', 'Ремонт'), ('E', 'Завершено')))
-    cost = models.DecimalField('Ціна', max_digits=15, decimal_places=2, null=True, blank=True)
+    cost = models.DecimalField('Ціна', max_digits=15, decimal_places=2, null=True, blank=True, default=0)
     date = models.DateField('Дата', auto_now_add=True)
 
     class Meta:

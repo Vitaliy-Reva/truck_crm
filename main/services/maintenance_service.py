@@ -29,6 +29,10 @@ class MaintenanceService:
         if new_type == 'E':
             transport.to = 'S'
 
+        for key, value in data.items():
+            if hasattr(maintenance, key):
+                setattr(maintenance, key, value)
+
         transport.save()
         maintenance.save()
         

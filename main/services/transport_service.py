@@ -9,15 +9,20 @@ class TransportService:
         return transport
     
     @staticmethod
-    def update_transport(transport: Transport, data: dict):
+    def update_transport(data: dict, transport: Transport):
 
         new_mileage = data["mileage"]
-
-        if new_mileage >= transport.next_inspect:
-            transport.to = 'NS'
-            transport.next_inspect += transport.miles_to_inspect
+        
+        if data is None:
+            if new_mileage >= transport.next_inspect:
+                transport.next_inspect += transport.miles_to_inspect
+                transport.to = 'NS'
         
         transport.mileage = new_mileage
+
+        for key, value in data.items():
+            if hasattr(transport, key):
+                setattr(transport, key, value)
         
         transport.save()
         
