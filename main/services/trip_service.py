@@ -14,16 +14,18 @@ class TripService:
         if trip.status == 'P':
             driver.status = 'OW'
             transport.status = "OW"
+            order.status = 'D'
         
         if trip.status == 'C':
             driver.status = 'F'
             transport.status = 'F'
+            order.status = 'E'
         
         trip.fuel_actual = transport.fuel_rate
         
         driver.save()
         transport.save()
-        driver.save()
+        order.save()
 
         return trip
     
@@ -49,13 +51,16 @@ class TripService:
         if new_status == 'P':
             driver.status = 'OW'
             transport.status = "OW"
+            order.status = 'D'
         
         if new_status == 'C':
             driver.status = 'F'
             transport.status = 'F'
+            order.status = 'E'
 
-        transport.save()
         driver.save()
+        transport.save()
+        order.save()
         trip.save()
 
         return trip

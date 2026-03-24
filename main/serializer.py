@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from types import NoneType
 from .models import *
 
 class PositiveValuesValidate:
@@ -75,41 +74,66 @@ class OrderSerializer(PositiveValuesValidate, serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'client_id', 'pay_id', 'order_name', 'price', 'address', 'payment_status', 'date']
+        fields = ['id', 'client_id', 'pay_id', 'order_name', 'price', 'status', 'address', 'payment_status', 'date']
 
 
 class TripSerializer(PositiveValuesValidate, serializers.ModelSerializer):
-
-    def validate(self, attrs):
-# Driver validation
+    
+    def validate_driver_id(self, driver):
         if self.instance is None:
-            return attrs
+            if driver.status == 'OW':
+                raise serializers.ValidationError("Водій в поїздці. Назначте іншого водія")
+            return driver
         
-        driver = attrs.get('driver_id')
-        trip_status = self.instance.status
-        print(trip_status)
-        print(driver.status)
-
-        if self.instance.driver_id == driver:
-            return attrs
-
-        if (trip_status == 'AC' and driver.status == 'OW') or (self.instance.driver_id.status == 'OW' and trip_status == 'P'):
-            raise serializers.ValidationError({"driver": "Неможливо переназначити водія, поки поточний виконує поїздку"})
-
-#Transport validation
-
-        transport = attrs.get('transport_id')
-
-        if self.instance.transport_id == transport:
-            return attrs
-
-        if transport.to == 'NS' or 'OS' or 'R':
-            raise serializers.ValidationError({"transport": "Транспорт потребує ТО/Ремонту або вже знаходиться на ТО/Ремонті"})
+        if (self.instance.status == 'AC' and driver.status == 'OW') and driver.id != self.instance.driver_id.id:
+            raise serializers.ValidationError("Водій в поїздці. Назначте іншого водія")
         
-        if transport.status == 'OW':
-            raise serializers.ValidationError({"transport": "Транспорт в дорозі"})
+        if (self.instance.status in ('P', 'C')) and driver.id != self.instance.driver_id.id:
+            raise serializers.ValidationError("Не можливо змінити водія під час поїздки")
 
-        return attrs
+        return driver
+
+    def validate_transport_id(self, transport):
+        if self.instance is None:
+            if transport.status == 'OW':
+                raise serializers.ValidationError("Транспорт в дорозі. Назначте інший транспорт") 
+
+            if transport.to == 'NS':
+                raise serializers.ValidationError("Транспорт потребує ТО/Ремонту")
+            elif transport.to in ('OS', 'R'):
+                raise serializers.ValidationError("Транспорт на ТО/Ремонті")
+
+            return transport
+        
+        if (self.instance.status == 'AC' and transport.status == 'OW') and transport.id != self.instance.transport_id.id:
+            raise serializers.ValidationError("Транспорт в поїздці. Назначте інший транспорт")
+        
+        if (self.instance.status in ('P', 'C')) and transport.id != self.instance.transport_id.id:
+            raise serializers.ValidationError("Не можливо змінити транспорт під час поїздки")
+
+        if transport.to in ('NS', 'OS', 'R'):
+            raise serializers.ValidationError("Транспорт потребує ТО/Ремонту або вже знаходиться на ТО/Ремонті")
+
+        return transport
+    
+    def validate_order_id(self, order):
+        if self.instance is None:
+            if order.status == 'D':
+                raise serializers.ValidationError("Замовлення вже доставляється")
+            if order.status == 'E':
+                raise serializers.ValidationError("Замовлення вже виконане")
+            return order
+        
+        if (self.instance.status == 'AC' and order.status == 'D') and self.instance.order_id.id != order.id:
+            raise serializers.ValidationError("Замовлення вже доставляється")
+        
+        if (self.instance.status in ('P', 'C')) and order.id != self.instance.order_id.id:
+            raise serializers.ValidationError("Не можливо змінити замовлення під час поїздки")
+        
+        if order.status == 'E':
+            raise serializers.ValidationError("Замовлення вже виконане")
+        
+        return order
     
     class Meta:
         model = Trip

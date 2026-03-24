@@ -85,6 +85,7 @@ class Order(models.Model):
     pay_id = models.CharField('Айді оплати', unique=True, null=True, blank=True, max_length=10)
     order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
     price = models.SmallIntegerField('Ціна', null=True, blank=True, default=0)
+    status = models.CharField('Статус доставки', null=True, blank=True, choices=(('W', 'Очікує'), ('D', 'Доставляється'), ('E', 'Доставлено')), default='W')
     address = models.CharField('Адреса доставки', max_length=300, null=True, blank=True)
     payment_status = models.CharField('Статус оплати', max_length=40, null=True, blank=True, choices=(('NP', 'Не оплачено'), ('P', 'Оплачено')), default='NP')
     date = models.DateField('Дата створення', auto_now=True, null=True, blank=True)

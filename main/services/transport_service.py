@@ -13,10 +13,9 @@ class TransportService:
 
         new_mileage = data["mileage"]
         
-        if data is None:
-            if new_mileage >= transport.next_inspect:
-                transport.next_inspect += transport.miles_to_inspect
-                transport.to = 'NS'
+        if new_mileage >= transport.next_inspect:
+            transport.next_inspect += transport.miles_to_inspect
+            transport.to = 'NS'
         
         transport.mileage = new_mileage
 
