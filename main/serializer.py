@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.http import JsonResponse
 from .models import *
 
 class PositiveValuesValidate:
@@ -35,7 +36,7 @@ class TransportSerializer(PositiveValuesValidate, serializers.ModelSerializer):
 class DriverSerializer(PositiveValuesValidate, serializers.ModelSerializer):
     class Meta:
         model = Driver
-        fields = ['id', 'first_name', 'last_name', 'phone', 'photo', 'license', 'ipn', 'experience', 'status']
+        fields = ['id', 'first_name', 'last_name', 'phone', 'photo', 'license', 'ipn', 'experience', 'status', 'weekend_until']
 
 
 class ClientSerializer(PositiveValuesValidate, serializers.ModelSerializer):
@@ -96,7 +97,7 @@ class TripSerializer(PositiveValuesValidate, serializers.ModelSerializer):
     def validate_transport_id(self, transport):
         if self.instance is None:
             if transport.status == 'OW':
-                raise serializers.ValidationError("Транспорт в дорозі. Назначте інший транспорт") 
+                raise serializers.ValidationError("Транспорт в дорозі. Назначте інший транспорт")
 
             if transport.to == 'NS':
                 raise serializers.ValidationError("Транспорт потребує ТО/Ремонту")
@@ -106,7 +107,7 @@ class TripSerializer(PositiveValuesValidate, serializers.ModelSerializer):
             return transport
         
         if (self.instance.status == 'AC' and transport.status == 'OW') and transport.id != self.instance.transport_id.id:
-            raise serializers.ValidationError("Транспорт в поїздці. Назначте інший транспорт")
+            raise serializers.ValidationError("Транспорт в дорозі. Назначте інший транспорт")
         
         if (self.instance.status in ('P', 'C')) and transport.id != self.instance.transport_id.id:
             raise serializers.ValidationError("Не можливо змінити транспорт під час поїздки")

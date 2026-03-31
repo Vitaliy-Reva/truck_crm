@@ -3,7 +3,7 @@ from django.db import models
 class Transport(models.Model):
     transport_model = models.CharField('Модель', max_length=40, null=True, blank=True)
     license_plate = models.CharField('Номера', max_length=10, null=True, blank=True)
-    fuel_rate = models.IntegerField('Рівень палива', null=True, blank=True, default=0)
+    fuel_rate = models.IntegerField('Рівень палива', default=0, blank=True)
     vin = models.CharField('VIN-номер', max_length=17, null=True, blank=True, unique=True)
     mileage = models.SmallIntegerField('Пробіг', null=True, blank=True, default=0)
     photo = models.ImageField('Фото', upload_to = 'images/')
@@ -28,8 +28,9 @@ class Driver(models.Model):
     photo = models.ImageField('Фото', upload_to='photos/')
     license = models.CharField('Посвідчення водія', max_length=100, null=True, blank=True)
     ipn = models.CharField('Ідентифікаційний код', max_length=10, null=True, blank=True, unique=True)
-    experience = models.TextField('Досвід роботи. Про себе', max_length=500)
-    status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі')), default='F')
+    experience = models.TextField('Досвід роботи. Про себе', max_length=500, null=True, blank=False)
+    status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі'), ('W', 'Вихідний')), default='F')
+    weekend_until = models.DateField('Вихідний до', null=True, blank=True)
 
     class Meta:
         ordering = ('last_name',)
@@ -64,7 +65,7 @@ class Client(models.Model):
     
     
 class NoPayedOrder(models.Model):
-    pay_id = models.CharField("Айді оплати", max_length=10, unique=True)
+    pay_id = models.IntegerField("Айді оплати", unique=True, primary_key=True)
     date = models.CharField('Дата', null=True, blank=True)
     company = models.CharField('Компанія', null=True, blank=True)
     name = models.CharField('ПІБ/Представник', null=True, blank=True)
@@ -82,7 +83,7 @@ class NoPayedOrder(models.Model):
 
 class Order(models.Model):
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
-    pay_id = models.CharField('Айді оплати', unique=True, null=True, blank=True, max_length=10)
+    pay_id = models.IntegerField('Айді оплати', unique=True, null=True, blank=True)
     order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
     price = models.SmallIntegerField('Ціна', null=True, blank=True, default=0)
     status = models.CharField('Статус доставки', null=True, blank=True, choices=(('W', 'Очікує'), ('D', 'Доставляється'), ('E', 'Доставлено')), default='W')

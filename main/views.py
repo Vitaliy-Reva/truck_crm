@@ -58,6 +58,16 @@ def transport_detail(request, pk):
         return Response()
     
 #-------------------------------------------------------------------------------------------
+# Get free transports
+#-------------------------------------------------------------------------------------------
+@api_view(['GET'])
+def free_transports(request):
+    if request.method == 'GET':
+        transpors = Transport.objects.filter(status='F')
+        serializer = TransportSerializer(transpors, many=True)
+        return Response(serializer.data)
+    
+#-------------------------------------------------------------------------------------------
 # Driver CRUD
 #-------------------------------------------------------------------------------------------
 @extend_schema(
@@ -100,6 +110,16 @@ def driver_detail(request, pk):
         return Response()
     
 #-------------------------------------------------------------------------------------------
+# Get free drivers
+#-------------------------------------------------------------------------------------------
+@api_view(['GET'])
+def free_drivers(request):
+    if request.method == 'GET':
+        drivers = Driver.objects.filter(status='F')
+        serializer = DriverSerializer(drivers, many=True)
+        return Response(serializer.data)
+    
+#-------------------------------------------------------------------------------------------
 # Client CRUD
 #-------------------------------------------------------------------------------------------
 @extend_schema(
@@ -125,7 +145,7 @@ def client_detail(request, pk):
     try:
         client = Client.objects.get(pk=pk)
     except Client.DoesNotExist:
-        return Response(ClientSerializer(client).data)
+        return Response({"error": "Object not found"})
     
     if request.method == 'GET':
         serializer = ClientSerializer(client)
@@ -140,6 +160,7 @@ def client_detail(request, pk):
     if request.method == 'DELETE':
         client.delete()
         return Response()
+    
 
 #-------------------------------------------------------------------------------------------
 # Order CRUD
@@ -170,7 +191,7 @@ def order_detail(request, pk):
     try:
         order = Order.objects.get(pk=pk)
     except Order.DoesNotExist:
-        Response({"error": "Object not found"})
+        return Response({"error": "Object not found"})
     
     if request.method == 'GET':
         serializer = OrderSerializer(order)
@@ -224,7 +245,7 @@ def trip_detail(request, pk):
     try:
         trip = Trip.objects.get(pk=pk)
     except Trip.DoesNotExist:
-        Response({"error": "Object not found"})
+        return Response({"error": "Object not found"})
     
     if request.method == 'GET':
         serializer = TripSerializer(trip)
@@ -374,12 +395,14 @@ def nopayment(request):
         return Response(serializer.data, status=200)
 
 @api_view(['GET', 'DELETE'])
-def nopaymentdetail(request, pk):
+def nopayment_detail(request, pk):
+    try:
+        nopayment = NoPayedOrder.objects.get(pk=pk)
+    except NoPayedOrder.DoesNotExist:
+        return Response({"error": "Object not found"})
+    
     if request.method == 'GET':
-        try:
-            nopayment = NoPayedOrder.objects.get(pk=pk)
-        except NoPayedOrder.DoesNotExist:
-            return Response({"error": "Object not found"})
+        return Response(NoPayedOrderSerializer(nopayment).data)
     
     if request.method == 'DELETE':
         nopayment.delete()

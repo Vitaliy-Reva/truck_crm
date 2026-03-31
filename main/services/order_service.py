@@ -20,6 +20,13 @@ class OrderService:
     def update_order(data: dict, order: Order, client: Client):
         data['client_id'] = client
 
+        unpaid_payment = NoPayedOrder.objects.filter(pay_id=order.pay_id).first()
+
+        if unpaid_payment:
+            order.payment_status = 'P'
+            order.save(update_fields=["payment_status"])
+            unpaid_payment.delete()
+
         for key, value in data.items():
             if hasattr(order, key):
                 setattr(order, key, value)
