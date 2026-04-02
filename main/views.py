@@ -209,6 +209,16 @@ def order_detail(request, pk):
     if request.method == 'DELETE':
         order.delete()
         return Response()
+    
+#-------------------------------------------------------------------------------------------
+# Get free orders
+#-------------------------------------------------------------------------------------------
+@api_view(['GET'])
+def free_orders(request):
+    if request.method == 'GET':
+        orders = Order.objects.filter(status='W')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
 #-------------------------------------------------------------------------------------------
 # Trip CRUD

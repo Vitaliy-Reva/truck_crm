@@ -29,7 +29,8 @@ urlpatterns = [
     path('get_order_word_doc/<int:pk>/', get_order_doc_by_id, name='get-order-doc-by-id'),
 
     path('get_free_transports/', free_transports, name='free-transports'),
-    path('get_free_drivers/', free_drivers, name='free-drivers')
+    path('get_free_drivers/', free_drivers, name='free-drivers'),
+    path('get_free_orders/', free_orders, name='free-orders'),
 ]
 
 if settings.DEBUG:
