@@ -58,6 +58,8 @@ class TripService:
             transport.status = 'F'
             order.status = 'E'
 
+        # trip.fuel_actual = transport.fuel_rate
+
         driver.save()
         transport.save()
         order.save()

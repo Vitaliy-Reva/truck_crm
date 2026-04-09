@@ -8,12 +8,16 @@ class PositiveValuesValidate:
         for value in attrs.values():
             if isinstance(value, (int, float)):
                 if value < 0:
-                    raise serializers.ValidationError({"error": "Значення не може бути меншим за 0"})
+                    exc = APIException(error_response('00_01'))
+                    exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+                    raise exc
         return attrs
 
 
 class TransportSerializer(PositiveValuesValidate, serializers.ModelSerializer):
     def validate(self, attrs):
+
+        attrs = super().validate(attrs)
 
         if self.instance is None:
             return attrs
@@ -39,19 +43,79 @@ class TransportSerializer(PositiveValuesValidate, serializers.ModelSerializer):
 
 
 class DriverSerializer(PositiveValuesValidate, serializers.ModelSerializer):
+    license = serializers.CharField(validators=[], required=False, allow_null=True)
+    ipn = serializers.CharField(validators=[], required=False, allow_null=True)
+    phone = serializers.CharField(validators=[], required=False, allow_null=True)
+
+    def validate_phone(self, value):
+        if Driver.objects.filter(phone=value).exists():
+            exc = APIException(error_response('02_01'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+
+    def validate_license(self, value):
+        if Driver.objects.filter(license=value).exists():
+            exc = APIException(error_response('02_02'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+    
+    def validate_ipn(self, value):
+        if Driver.objects.filter(ipn=value).exists():
+            exc = APIException(error_response('02_03'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+
     class Meta:
         model = Driver
-        fields = ['id', 'first_name', 'last_name', 'phone', 'photo', 'license', 'ipn', 'experience', 'status', 'weekend_until']
+        fields = ['id', 'first_name', 'last_name', 'phone', 'photo', 'license', 'ipn', 'about', 'status', 'weekend_until']
 
 
 class ClientSerializer(PositiveValuesValidate, serializers.ModelSerializer):
 
+    phone = serializers.CharField(validators=[], required=False, allow_null=True)
+    email = serializers.EmailField(validators=[], required=False, allow_null=True)
+    ipn = serializers.CharField(validators=[], required=False, allow_null=True)
+    edrpou = serializers.CharField(validators=[], required=False, allow_null=True)
+
+    def validate_phone(self, value):
+        if Client.objects.filter(phone=value).exists():
+            exc = APIException(error_response('03_05'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+        
+    def validate_email(self, value):
+        if Client.objects.filter(email=value).exists():
+            exc = APIException(error_response('03_06'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+    
+    def validate_ipn(self, value):
+        if Client.objects.filter(ipn=value).exists():
+            exc = APIException(error_response('03_07'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+    
+    def validate_edrpou(self, value):
+        if Client.objects.filter(edrpou=value):
+            exc = APIException(error_response('03_08'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
+        return value
+
     def validate(self, attrs):
+        attrs = super().validate(attrs)
+
         first_name = attrs.get("first_name")
         last_name = attrs.get("last_name")
         type = attrs.get("client_type")
         ipn = attrs.get("ipn")
-        erdpou = attrs.get("erdpou")
+        edrpou = attrs.get("edrpou")
         
         if type == 'FIZ' and not ipn:
             exc = APIException(error_response('03_01'))
@@ -61,7 +125,7 @@ class ClientSerializer(PositiveValuesValidate, serializers.ModelSerializer):
             exc = APIException(error_response('03_02'))
             exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             raise exc
-        elif type == 'COMP' and not erdpou:
+        elif type == 'COMP' and not edrpou:
             exc = APIException(error_response('03_03'))
             exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
             raise exc
@@ -78,13 +142,21 @@ class ClientSerializer(PositiveValuesValidate, serializers.ModelSerializer):
         fields = ['id', 'client_type', 'first_name', 'last_name', 'phone', 'email', 'ipn', 'company_name', 'edrpou', 'created']
 
     
-class NoPayedOrderSerializer(serializers.ModelSerializer):
+class NoPayedOrderSerializer(PositiveValuesValidate, serializers.ModelSerializer):
     class Meta:
         model = NoPayedOrder
         fields = ['pay_id', 'date', 'company', 'name', 'ipn', 'edrpou', 'total']
 
 
 class OrderSerializer(PositiveValuesValidate, serializers.ModelSerializer):
+
+    pay_id = serializers.IntegerField(validators=[], required=False, allow_null=True)
+
+    def validate_pay_id(self, value):
+        if Order.objects.filter(pay_id=value).exists():
+            exc = APIException(error_response('05_01'))
+            exc.status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+            raise exc
 
     class Meta:
         model = Order
@@ -188,6 +260,11 @@ class TripSerializer(PositiveValuesValidate, serializers.ModelSerializer):
 
 
 class FuelLogSerializer(PositiveValuesValidate, serializers.ModelSerializer):
+
+    def validate_transport_id(self, value):
+        if value is None:
+            raise APIException(error_response('07_01'))
+        return value
     
     class Meta:
         model = FuelLog

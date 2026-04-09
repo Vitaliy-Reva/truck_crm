@@ -10,7 +10,7 @@ class FuelLogService:
         transport.fuel_rate += fuellog.liters
         trip.fuel_actual = transport.fuel_rate
 
-        if trip.fuel_actual > trip.fuel_planned:
+        if (trip.fuel_actual + 10) > trip.fuel_planned:
             trip.fuel_status = 'O'
 
         transport.save()
@@ -23,9 +23,8 @@ class FuelLogService:
         data["trip_id"] = trip
 
         transport.fuel_rate += fuellog.liters
-        trip.fuel_actual = transport.fuel_rate
 
-        if trip.fuel_actual > trip.fuel_planned:
+        if (trip.fuel_actual + 10) > trip.fuel_planned:
             trip.fuel_status = 'O'
 
         for key, value in data.items():

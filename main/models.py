@@ -24,11 +24,11 @@ class Transport(models.Model):
 class Driver(models.Model):
     first_name = models.CharField("Ім'я", max_length=50, null=True, blank=True)
     last_name = models.CharField('Прізвище', max_length=50, null=True, blank=True)
-    phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True, default='+380')
+    phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True, unique=True)
     photo = models.ImageField('Фото', upload_to='photos/')
-    license = models.CharField('Посвідчення водія', max_length=100, null=True, blank=True)
+    license = models.CharField('Посвідчення водія', max_length=100, null=True, blank=True, unique=True)
     ipn = models.CharField('Ідентифікаційний код', max_length=10, null=True, blank=True, unique=True)
-    experience = models.TextField('Досвід роботи. Про себе', max_length=500, null=True, blank=False)
+    about = models.TextField('Досвід роботи. Про себе', max_length=500, null=True, blank=False)
     status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі'), ('W', 'Вихідний')), default='F')
     weekend_until = models.DateField('Вихідний до', null=True, blank=True)
 
@@ -45,7 +45,7 @@ class Client(models.Model):
     client_type = models.CharField('Тип клієнта', max_length=10, choices=(('FIZ', 'Фізичне лице'), ('FOP', 'ФОП'), ('COMP', 'Компанія')))
     first_name = models.CharField("Ім'я", max_length=50, null=True, blank=True)
     last_name = models.CharField('Прізвище', max_length=50, null=True, blank=True)
-    phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True, default='+380')
+    phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True)
     email = models.EmailField('Електронна пошта', max_length=127, null=True, blank=True)
     ipn = models.CharField('Ідентифікаційний код', max_length=10, null=True, blank=True, unique=True)
     company_name = models.CharField('Назва компанії', max_length=100, null=True, blank=True)
