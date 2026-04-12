@@ -1,0 +1,131 @@
+[
+{
+  "model": "main.transport",
+  "pk": 1,
+  "fields": {
+    "transport_model": "Narkosha4523",
+    "license_plate": "TM6092ME",
+    "fuel_rate": 568,
+    "vin": "NF0624987347247WM",
+    "mileage": 1,
+    "photo": "images/Kamaz_55111_8Tx9Y7b_0g7WqKN.JPG",
+    "status": "F",
+    "to": "S",
+    "miles_to_inspect": 50000,
+    "next_inspect": 50001
+  }
+},
+{
+  "model": "main.driver",
+  "pk": 1,
+  "fields": {
+    "first_name": "Чупнин",
+    "last_name": "Толян",
+    "phone": "0931259325",
+    "photo": "photos/sanya_nmkqJ1u.jpeg",
+    "license": "4457313638",
+    "ipn": "0001208438",
+    "about": "Ну, хасанив, да, було",
+    "status": "F",
+    "weekend_until": null
+  }
+},
+{
+  "model": "main.driver",
+  "pk": 2,
+  "fields": {
+    "first_name": "Чупнин",
+    "last_name": "Толян",
+    "phone": "0931259326",
+    "photo": "photos/sanya_QqISRHL.jpeg",
+    "license": "4457313639",
+    "ipn": "0001208439",
+    "about": "Ну, хасанив, да, було",
+    "status": "F",
+    "weekend_until": null
+  }
+},
+{
+  "model": "main.client",
+  "pk": 1,
+  "fields": {
+    "client_type": "FIZ",
+    "first_name": "Дмитро",
+    "last_name": "Наконечний",
+    "phone": "+380999999999",
+    "email": "sanyavelikiy@gmail.com",
+    "ipn": "8934072475",
+    "company_name": null,
+    "edrpou": null,
+    "created": "2026-04-08"
+  }
+},
+{
+  "model": "main.client",
+  "pk": 2,
+  "fields": {
+    "client_type": "COMP",
+    "first_name": "Дмитро",
+    "last_name": "Наконечний",
+    "phone": "+380999999990",
+    "email": "sanyavelikiy1@gmail.com",
+    "ipn": null,
+    "company_name": null,
+    "edrpou": "05234734",
+    "created": "2026-04-08"
+  }
+},
+{
+  "model": "main.order",
+  "pk": 1,
+  "fields": {
+    "client_id": 1,
+    "pay_id": 1281276234,
+    "order_name": "Банани",
+    "price": 45213,
+    "status": "W",
+    "address": "м. Одеса, вул. Кікельна, 45",
+    "payment_status": "NP",
+    "date": "2026-04-08"
+  }
+},
+{
+  "model": "main.trip",
+  "pk": 1,
+  "fields": {
+    "driver_id": 1,
+    "transport_id": 1,
+    "client_id": 1,
+    "order_id": 1,
+    "start_point": "Полтава",
+    "end_point": "м. Одеса, вул. Кікельна, 45",
+    "status": "AC",
+    "distance": 342,
+    "fuel_status": "O",
+    "fuel_actual": 568,
+    "fuel_planned": 567
+  }
+},
+{
+  "model": "main.fuellog",
+  "pk": 5,
+  "fields": {
+    "transport_id": 1,
+    "trip_id": 1,
+    "liters": 13,
+    "price": "234.00",
+    "timestamp": "2026-04-08T18:44:04.098Z"
+  }
+},
+{
+  "model": "main.fuellog",
+  "pk": 6,
+  "fields": {
+    "transport_id": 1,
+    "trip_id": 1,
+    "liters": 545,
+    "price": "234.00",
+    "timestamp": "2026-04-08T18:45:45.519Z"
+  }
+}
+]

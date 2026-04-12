@@ -5,12 +5,12 @@ class Transport(models.Model):
     license_plate = models.CharField('Номера', max_length=10, null=True, blank=True)
     fuel_rate = models.IntegerField('Рівень палива', default=0, blank=True)
     vin = models.CharField('VIN-номер', max_length=17, null=True, blank=True, unique=True)
-    mileage = models.SmallIntegerField('Пробіг', null=True, blank=True, default=0)
+    mileage = models.IntegerField('Пробіг', null=True, blank=True, default=0)
     photo = models.ImageField('Фото', upload_to = 'images/')
     status = models.CharField('Статус', max_length=20, choices=(('F', 'Вільний'), ('OW', 'В дорозі')), default='F')
     to = models.CharField('Технічне обслуговування', max_length=20, choices=(('NS', 'Потрібне ТО'), ('S', 'Обслужений'), ('OS', 'На обслуговувані'), ('R', 'В ремонті')), default='S')
-    miles_to_inspect = models.SmallIntegerField('ТО раз в', null=True, blank=True, default=0)
-    next_inspect = models.SmallIntegerField('Наступне ТО', null=True, blank=True, default=0)
+    miles_to_inspect = models.IntegerField('ТО раз в', null=True, blank=True, default=0)
+    next_inspect = models.IntegerField('Наступне ТО', null=True, blank=True, default=0)
 
     class Meta:
         ordering = ('transport_model',)
@@ -42,7 +42,7 @@ class Driver(models.Model):
 
 
 class Client(models.Model):
-    client_type = models.CharField('Тип клієнта', max_length=10, choices=(('FIZ', 'Фізичне лице'), ('FOP', 'ФОП'), ('COMP', 'Компанія')))
+    client_type = models.CharField('Тип клієнта', max_length=15, choices=(('FIZ', 'Фізична особа'), ('FOP', 'ФОП'), ('COMP', 'Компанія')))
     first_name = models.CharField("Ім'я", max_length=50, null=True, blank=True)
     last_name = models.CharField('Прізвище', max_length=50, null=True, blank=True)
     phone = models.CharField('Номер телефону', max_length=13, null=True, blank=True)
@@ -85,7 +85,7 @@ class Order(models.Model):
     client_id = models.ForeignKey(Client, on_delete=models.CASCADE)
     pay_id = models.IntegerField('Айді оплати', unique=True, null=True, blank=True)
     order_name = models.CharField('Назва замовлення', max_length=100, null=True, blank=True)
-    price = models.SmallIntegerField('Ціна', null=True, blank=True, default=0)
+    price = models.IntegerField('Ціна', null=True, blank=True, default=0)
     status = models.CharField('Статус доставки', null=True, blank=True, choices=(('W', 'Очікує'), ('D', 'Доставляється'), ('E', 'Доставлено')), default='W')
     address = models.CharField('Адреса доставки', max_length=300, null=True, blank=True)
     payment_status = models.CharField('Статус оплати', max_length=40, null=True, blank=True, choices=(('NP', 'Не оплачено'), ('P', 'Оплачено')), default='NP')
